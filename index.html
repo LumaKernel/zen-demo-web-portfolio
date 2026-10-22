@@ -2,70 +2,336 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- ここよくわかんないけどこれいれとかないとスマホで変になるらしい -->
 <title>★☆ようこそ！！わたしのホームページへ☆★</title>
 <style>
+/* AIにおしえてもらったヤバいテク: 全体を暗くするやつ */
 body {
   background-color: #000033;
   color: #00ff99;
   font-family: "MS Gothic", monospace;
+  overflow-x: hidden;
   margin: 0; padding: 0;
 }
+/* コンテナ。これ参考にした https://developer.mozilla.org/ja/docs/Web/CSS/max-width */
 .container { max-width: 780px; margin: 0 auto; padding: 10px 15px; }
-h1 { text-align: center; font-size: 24px; color: #ff66cc; }
+h1 {
+  text-align: center; font-size: 24px; color: #ff66cc;
+  /* ネオンっぽく光るやつ、text-shadowを重ねるとつよい */
+  text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+  animation: glow 1.5s ease-in-out infinite alternate;
+}
+@keyframes glow {
+  from { text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff; }
+  to { text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff66cc, 0 0 60px #ff33aa; }
+}
+/* にじいろのテキスト。background-clipつかうとテキストだけ色つけれる！！ */
+/* https://developer.mozilla.org/ja/docs/Web/CSS/background-clip 参考 */
+.marquee-wrap {
+  background: linear-gradient(90deg, #ff0000, #ff7700, #ffff00, #00ff00, #0000ff, #8b00ff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  font-size: 18px; font-weight: bold; white-space: nowrap; overflow: hidden;
+}
+.marquee-inner { display: inline-block; animation: scroll 12s linear infinite; }
+/* むかしはmarqueeタグでできたらしいけど廃止されたからCSSでやる */
+@keyframes scroll { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+hr { border: none; height: 3px; background: repeating-linear-gradient(90deg, #ff0000 0px, #ff0000 10px, #ffff00 10px, #ffff00 20px, #00ff00 20px, #00ff00 30px, #00ffff 30px, #00ffff 40px, #0000ff 40px, #0000ff 50px, #ff00ff 50px, #ff00ff 60px); }
 .section-title { color: #ffff00; font-size: 20px; border-bottom: 2px dashed #ffff00; padding-bottom: 4px; margin-top: 30px; }
-a { color: #66ccff; }
-a:visited { color: #cc99ff; }
+a { color: #66ccff; } a:visited { color: #cc99ff; } a:hover { color: #fff; background: #ff00ff; }
 .profile-table { border: 2px solid #00ff99; border-collapse: collapse; margin: 10px auto; }
 .profile-table td, .profile-table th { border: 1px solid #00ff99; padding: 5px 12px; }
 .profile-table th { background: #003366; color: #ffff00; }
+.visitor-counter { text-align: center; margin: 20px 0; font-size: 13px; color: #999; }
+.visitor-counter span { font-family: "Courier New", monospace; background: #111; border: 1px inset #555; padding: 2px 8px; color: #0f0; font-size: 16px; }
+/* blinkタグも廃止されたからCSSで再現する */
+.blink { animation: blink 1s step-start infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.star-bg { position: fixed; top:0;left:0;width:100%;height:100%; pointer-events:none; z-index:-1; }
 .works-list { list-style:none; padding:0; }
-.works-list li { margin:8px 0; padding:8px; border:1px solid #336; }
-footer { text-align:center; margin-top:40px; padding:15px 0; font-size:11px; color:#666; }
+.works-list li { margin:8px 0; padding:8px; border:1px solid #336; background:rgba(0,0,51,0.8); }
+.works-list li:hover { background:rgba(51,0,102,0.5); }
+.under-construction { text-align:center; margin:15px 0; font-size:14px; color:#ff9900; }
+footer { text-align:center; margin-top:40px; padding:15px 0; border-top:1px solid #336; font-size:11px; color:#666; }
+/* きらきらエフェクト。AIにきいたらこうやるといいって */
+.sparkle { position:fixed; pointer-events:none; font-size:12px; animation:sparkle-fall 1.5s ease-out forwards; z-index:999; }
+@keyframes sparkle-fall { 0%{opacity:1;transform:translateY(0) rotate(0deg) scale(1);} 100%{opacity:0;transform:translateY(60px) rotate(180deg) scale(0.3);} }
+.midi-player { text-align:center; margin:10px 0; padding:8px; border:1px dotted #666; font-size:12px; color:#888; }
+.hitokoto { background:#001a33; border:1px solid #00aaff; padding:12px; margin:10px 0; font-size:14px; }
+.update-log { font-size:12px; color:#99cc99; line-height:1.8; }
+
+/* じゃんけん用 */
+.janken-area { background:#001133; border:1px solid #336; padding:12px; margin:8px 0; }
+.janken-btn { background:#003366; color:#0f0; border:1px solid #0f0; padding:6px 16px; margin:4px; cursor:pointer; font-family:"MS Gothic",monospace; font-size:14px; }
+.janken-btn:hover { background:#006699; }
+#janken-result { margin-top:8px; font-size:15px; min-height:1.5em; }
+
+/* おえかき用 */
+.oekaki-area { background:#001133; border:1px solid #336; padding:12px; margin:8px 0; }
+/* https://developer.mozilla.org/ja/docs/Web/API/Canvas_API これみてつくった */
+#oekakiCanvas { border:1px solid #0f0; cursor:crosshair; display:block; margin:0 auto; background:#000; }
+.oekaki-controls { text-align:center; margin-top:6px; }
+.oekaki-controls button { background:#003366; color:#0f0; border:1px solid #0f0; padding:4px 12px; cursor:pointer; font-family:"MS Gothic",monospace; }
+
+/* とけい */
+.tokei-area { background:#001133; border:1px solid #336; padding:12px; margin:8px 0; text-align:center; }
+#tokei { font-size:36px; font-family:"Courier New",monospace; color:#0f0;
+  /* AIにおしえてもらった。text-shadowでネオンっぽくなる */
+  text-shadow: 0 0 8px #0f0, 0 0 16px #0f0; letter-spacing:4px; }
 </style>
 </head>
 <body>
+<!-- ほしがふるcanvas。requestAnimationFrameっていうのをつかう -->
+<canvas class="star-bg" id="starCanvas"></canvas>
 <div class="container">
 
+<!-- タイトル。h1は1ページに1個だけがいいらしい（SEO的に） -->
 <h1>★☆ようこそ！！わたしのホームページへ☆★</h1>
 
+<!-- ながれるテキスト。むかしはmarqueeタグでできたけど今はCSSアニメーションでやる -->
+<!-- https://developer.mozilla.org/ja/docs/Web/CSS/animation これ参考にした -->
+<div class="marquee-wrap">
+<div class="marquee-inner">♪♪♪ いらっしゃいませ〜！このサイトは JavaScript と HTML と CSS で作られています！ ぜひゆっくりしていってね！ ♪♪♪</div>
+</div>
+
 <hr>
 
-<p class="section-title">◆ じこしょうかい ◆</p>
+<!-- カウンター。localStorageでやってるからブラウザごとに別カウント...まあいいか -->
+<div class="visitor-counter">
+あなたは<span id="counter">000000</span>人目のお客様です！
+</div>
 
+<!-- BGM。ほんとはaudioタグで鳴らせるけどファイルがないのでダミー -->
+<!-- https://developer.mozilla.org/ja/docs/Web/HTML/Element/audio ←audioタグの公式 -->
+<div class="midi-player">
+♪ BGM: kirby_greengreens.mid [<a href="#" onclick="return false">停止</a>] [<a href="#" onclick="return false">再生</a>]<br>
+※音がなる場合があります
+</div>
+
+<!-- ひとことコーナー。ランダムで変わるようにしてる -->
+<div class="hitokoto">
+<span class="blink">▶</span> 今日のひとこと: 「<span id="hitokoto">JavaScriptたのしい！</span>」
+</div>
+
+<p class="section-title">◆ 自己紹介 ◆</p>
+
+<!-- tableタグ。これ結構むずかしかった -->
+<!-- https://developer.mozilla.org/ja/docs/Web/HTML/Element/table 公式ドキュメント -->
 <table class="profile-table">
-<tr><th>なまえ</th><td>ゆーざー</td></tr>
-<tr><th>すきなもの</th><td>プログラミング、ゲーム、ねこ</td></tr>
-  <tr><th>つかってるOS</td><td>Windows 11</td></tr>
-<tr><th>すきな言語</th><td>JavaScript（べんきょう中）</td></tr>
-<tr><th>しょうらいの夢</th><td>すごいWebサービスをつくる！</td></tr>
+<tr><th>名前</th><td>るまっぴ☆</td></tr>
+<tr><th>好きなもの</th><td>プログラミング、ゲーム、ねこ</td></tr>
+  <tr><th>使ってるOS</td><td>Windows 11</td></tr>
+<!-- ↑ thの閉じタグまちがえてるけど動く...なんで？ -->
+<tr><th>好きな言語</th><td>JavaScript（勉強中）</td></tr>
+<tr><th>将来の夢</th><td>すごいWebサービスをつくる！</td></tr>
 </table>
 
-<p class="section-title">◆ さくひんしゅう ◆</p>
+<p class="section-title">◆ 作品集 ◆</p>
 
+<!-- ここにつくったものをならべていく -->
 <ul class="works-list">
 <li>
-<strong>じゃんけんゲーム</strong><br>
-ボタンをおすとCPUとじゃんけんできます。
+<!-- じゃんけんゲーム。Math.random()でランダムにだす -->
+<strong>🎮 じゃんけんゲーム</strong><br>
+ボタンを押すとCPUとじゃんけんできます。<br>
+    <small>※グーを出すとなぜか勝率が高い（バグ？）</small>
+<div class="janken-area">
+<button class="janken-btn" onclick="janken('グー')">✊ グー</button>
+<button class="janken-btn" onclick="janken('チョキ')">✌️ チョキ</button>
+  <button class="janken-btn" onclick="janken('パー')">🖐️ パー</button>
+<div id="janken-result"></div>
+</div>
 </li>
   <li>
-<strong>おえかきボード</strong><br>
-canvasをつかったシンプルなおえかきツール。
+<!-- canvasおえかき。AIにおしえてもらったヤバいテク: getContext('2d')でいろいろかける -->
+    <strong>🎨 おえかきボード</strong><br>
+canvasを使ったシンプルなおえかきツール。<br>
+<small>※消しゴム機能はまだつくってない</small>
+<div class="oekaki-area">
+<canvas id="oekakiCanvas" width="400" height="200"></canvas>
+<div class="oekaki-controls">
+<!-- clearRectで全部消せる -->
+<button onclick="clearOekaki()">ぜんぶ消す</button>
+</div>
+</div>
   </li>
+<li>
+    <!-- setIntervalで1秒ごとに更新するやつ -->
+<!-- https://developer.mozilla.org/ja/docs/Web/API/setInterval 公式 -->
+<strong>⏰ デジタル時計</strong><br>
+リアルタイムで時間が変わる時計。CSSでがんばった。<br>
+<div class="tokei-area">
+<div id="tokei">00:00:00</div>
+</div>
+</li>
 </ul>
 
-<p class="section-title">◆ リンクしゅう ◆</p>
-
-<p>
-📌 <a href="https://developer.mozilla.org/ja/">MDN Web Docs</a> - べんきょうにつかってます<br>
+<p class="under-construction">
+🚧 このセクションは工事中です 🚧<br>
+<small>もっと作品をふやす予定！</small>
 </p>
+
+<p class="section-title">◆ 更新履歴 ◆</p>
+
+<div class="update-log">
+2026/10/24 - サイト公開！やったー！<br>
+2026/10/24 - 星を降らせるようにした<br>
+  2026/10/23 - CSSいじってたら3時間溶けた<br>
+2026/10/22 - JavaScriptでカウンター作った<br>
+2026/10/20 - HTML書きはじめた
+</div>
+
+<p class="section-title">◆ リンク集 ◆</p>
+
+<!-- 勉強に使ってるサイトたち -->
+<p>
+📌 <a href="https://developer.mozilla.org/ja/">MDN Web Docs</a> - 勉強に使ってます。公式リファレンス<br>
+<!-- ↓ HTMLとかCSSの仕様。むずかしいけどたまに見る -->
+  📌 <a href="https://www.w3schools.com/">W3Schools</a> - サンプルコードがいっぱいあってわかりやすい<br>
+📌 <a href="https://coliss.com/">コリス</a> - CSSのテクニックとかのっててよい<br>
+📌 <a href="https://www.webcreatorbox.com/">Webクリエイターボックス</a> - デザインの参考にしてる<br>
+📌 <a href="https://saruwakakun.com/">サルワカ</a> - CSSの解説がわかりやすすぎる<br>
+📌 <a href="#">友達のページ</a> - （まだいない）<br>
+</p>
+
+<!-- ↓ もっとリンクふやしたい -->
 
 <hr>
 
+<!-- フッター。copyrightって書くのが普通らしい -->
 <footer>
-since 2026.10.20<br>
-(c) 2026 わたしのホームページ
+since 2026.10.20 / 最終更新 2026.10.24 !<br>
+  (c) 2026 わたしのホームページ<br>
+<!-- ↓ ネタ。でもむかしのサイトってほんとにこういうの書いてあったらしい -->
+<small>このサイトは 800x600 の解像度で最適化されています（うそ）</small><br>
+<br>
+<a href="#">▲ うえにもどる ▲</a>
 </footer>
 
 </div>
+
+<!-- ここからJavaScript -->
+<!-- AIにおしえてもらったヤバいテク: canvasで星をふらせるやつ -->
+<script>
+// 星が降る背景。canvasつかう
+// https://developer.mozilla.org/ja/docs/Web/API/Canvas_API/Tutorial これみた
+var canvas = document.getElementById('starCanvas');
+var ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+var stars = [];
+// 150個星をつくる
+for(var i = 0; i < 150; i++){
+stars.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, size: Math.random()*2+0.5, speed: Math.random()*0.4+0.15, opacity: Math.random() });
+}
+function drawStars(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(var i=0;i<stars.length;i++){
+var s=stars[i];
+    // ちかちかさせる。opacityをランダムに変える
+s.opacity+=(Math.random()-0.5)*0.05;
+if(s.opacity<0.1)s.opacity=0.1;
+    if(s.opacity>1)s.opacity=1;
+ctx.beginPath();
+ctx.arc(s.x,s.y,s.size,0,Math.PI*2);
+ctx.fillStyle='rgba(255,255,255,'+s.opacity+')';
+ctx.fill();
+// 下に落ちていく
+s.y+=s.speed;
+    if(s.y>canvas.height){s.y=0;s.x=Math.random()*canvas.width;}
+}
+requestAnimationFrame(drawStars);
+}
+drawStars();
+// ウィンドウサイズ変わったらcanvasもあわせる
+window.addEventListener('resize',function(){canvas.width=innerWidth;canvas.height=innerHeight;});
+
+// きらきらエフェクト。マウス動かすとキラキラでる
+// これめっちゃたのしい
+document.addEventListener('mousemove',function(e){
+if(Math.random()>0.7)return; // 全部にだすと重くなるから間引く
+var sp=document.createElement('div');
+sp.className='sparkle';
+  sp.textContent=['✨','⭐','💫','✦'][Math.floor(Math.random()*4)];
+sp.style.left=e.pageX+'px';
+sp.style.top=e.pageY+'px';
+document.body.appendChild(sp);
+  setTimeout(function(){sp.remove();},1500);
+});
+
+// アクセスカウンター（なんちゃって）
+// localStorageに保存してるだけだからブラウザ変えるとリセットされる...
+var count=localStorage.getItem('visit_count');
+if(!count)count=Math.floor(Math.random()*300)+42; // 最初はランダム
+count=parseInt(count)+1;
+localStorage.setItem('visit_count',count);
+// padStartで0埋め。これ便利
+// https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
+document.getElementById('counter').textContent=String(count).padStart(6,'0');
+
+// ひとことランダム表示
+var msgs=['JavaScriptたのしい！','CSSむずかしい......','はやくReact使いたい','console.logは友達','セミコロン忘れがち','divの入れ子がわからなくなった','ねこかわいい'];
+document.getElementById('hitokoto').textContent=msgs[Math.floor(Math.random()*msgs.length)];
+
+// === じゃんけんゲーム ===
+// Math.random()で相手の手をランダムに決める
+function janken(myHand){
+var hands=['グー','チョキ','パー'];
+var cpuHand=hands[Math.floor(Math.random()*3)];
+var result='';
+if(myHand===cpuHand){
+  result='あいこ！';
+}else if(
+(myHand==='グー' && cpuHand==='チョキ') ||
+(myHand==='チョキ' && cpuHand==='パー') ||
+    (myHand==='パー' && cpuHand==='グー')
+){
+result='あなたの勝ち！！🎉';
+}else{
+  result='あなたの負け...😭';
+}
+document.getElementById('janken-result').innerHTML=
+'あなた: '+myHand+' vs CPU: '+cpuHand+' → <strong>'+result+'</strong>';
+}
+
+// === おえかきボード ===
+// mousedownでフラグ立ててmousemoveで線を引く
+var oCanvas=document.getElementById('oekakiCanvas');
+var oCtx=oCanvas.getContext('2d');
+var drawing=false;
+oCtx.strokeStyle='#00ff99';
+oCtx.lineWidth=2;
+  oCtx.lineCap='round';
+oCanvas.addEventListener('mousedown',function(e){
+drawing=true;
+  oCtx.beginPath();
+var rect=oCanvas.getBoundingClientRect();
+oCtx.moveTo(e.clientX-rect.left, e.clientY-rect.top);
+});
+oCanvas.addEventListener('mousemove',function(e){
+  if(!drawing)return;
+var rect=oCanvas.getBoundingClientRect();
+oCtx.lineTo(e.clientX-rect.left, e.clientY-rect.top);
+oCtx.stroke();
+});
+oCanvas.addEventListener('mouseup',function(){drawing=false;});
+oCanvas.addEventListener('mouseleave',function(){drawing=false;});
+function clearOekaki(){
+oCtx.clearRect(0,0,oCanvas.width,oCanvas.height);
+}
+
+// === デジタル時計 ===
+// setIntervalで1秒ごとに更新
+// https://developer.mozilla.org/ja/docs/Web/API/setInterval
+function updateTokei(){
+var now=new Date();
+var h=String(now.getHours()).padStart(2,'0');
+var m=String(now.getMinutes()).padStart(2,'0');
+  var s=String(now.getSeconds()).padStart(2,'0');
+document.getElementById('tokei').textContent=h+':'+m+':'+s;
+}
+updateTokei();
+setInterval(updateTokei,1000);
+</script>
 </body>
 </html>
