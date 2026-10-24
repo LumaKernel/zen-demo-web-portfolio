@@ -260,14 +260,22 @@ document.body.appendChild(sp);
 });
 
 // アクセスカウンター（なんちゃって）
-// localStorageに保存してるだけだからブラウザ変えるとリセットされる...
-var count=localStorage.getItem('visit_count');
-if(!count)count=Math.floor(Math.random()*300)+42; // 最初はランダム
-count=parseInt(count)+1;
-localStorage.setItem('visit_count',count);
-// padStartで0埋め。これ便利
-// https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
+// リロードするたびランダム。たまにキリ番になる
+var count=Math.floor(Math.random()*12000)+30;
+// たまにキリ番にする
+if(Math.random()<0.15) count=100;
+if(Math.random()<0.1) count=777;
+if(Math.random()<0.08) count=1000;
+if(Math.random()<0.04) count=10000;
 document.getElementById('counter').textContent=String(count).padStart(6,'0');
+if(count===100||count===1000||count===10000){
+  document.getElementById('counter').parentElement.innerHTML+=
+    '<br><span style="color:#ff0;font-size:16px">キリ番おめでとう！！🎉🎊</span>';
+}
+if(count===777){
+document.getElementById('counter').parentElement.innerHTML+=
+  '<br><span style="color:#ff0;font-size:16px">🎰 フィーバー！！！</span>';
+}
 
 // ひとことランダム表示
 var msgs=['JavaScriptたのしい！','CSSむずかしい......','はやくReact使いたい','console.logは友達','セミコロン忘れがち','divの入れ子がわからなくなった','ねこかわいい'];
